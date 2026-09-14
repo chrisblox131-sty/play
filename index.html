@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>The Awaiting Stars — Mobile & Android Edition</title>
+    
+    <!-- PWA & Mobile Web App Meta Tags -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="The Awaiting Stars">
+    <meta name="theme-color" content="#090514">
+    <link rel="icon" type="image/png" href="The_Awaiting_Stars_Logo.png">
+    <link rel="apple-touch-icon" href="The_Awaiting_Stars_Logo.png">
+
+    <!-- Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-base: #090514;
+            --bg-panel: #140e28;
+            --accent-gold: #ffb703;
+            --accent-cyan: #00f5d4;
+            --accent-purple: #7209b7;
+            --accent-red: #ef476f;
+            --text-main: #f8f9fa;
+            --text-dim: #b8b2d1;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* Top Mobile App Bar */
+        .app-bar {
+            background: rgba(15, 10, 30, 0.96);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 183, 3, 0.25);
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .brand img {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            object-fit: contain;
+        }
+        .brand-title {
+            font-family: 'Cinzel', serif;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--accent-gold);
+            letter-spacing: 0.5px;
+        }
+
+        .app-bar-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-mini {
+            background: #231842;
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-mini:active {
+            background: var(--accent-gold);
+            color: #000;
+        }
+
+        /* Mode Selector Tabs */
+        .mode-nav {
+            display: flex;
+            background: #110b24;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .mode-nav::-webkit-scrollbar { display: none; }
+
+        .mode-tab {
+            flex: 1;
+            min-width: 100px;
+            padding: 10px 8px;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: var(--text-dim);
+            font-size: 12px;
+            font-weight: 700;
+            text-align: center;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .mode-tab.active {
+            color: var(--accent-gold);
+            border-bottom-color: var(--accent-gold);
+            background: rgba(255, 183, 3, 0.08);
+        }
+
+        /* Screen Wrapper */
+        .screen-container {
+            display: none;
+            flex: 1;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 10px;
+        }
+        .screen-container.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Canvas Stage */
+        .canvas-stage {
+            position: relative;
+            width: 100%;
+            background: #000;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px solid rgba(255, 183, 3, 0.3);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            touch-action: none;
+        }
+
+        /* Dual-Perspective Mode Sub-Switcher */
+        .sub-mode-bar {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .sub-btn {
+            background: #1c1436;
+            color: var(--text-dim);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .sub-btn.active {
+            background: linear-gradient(135deg, #7209b7, #3a0ca3);
+            color: #fff;
+            border-color: var(--accent-gold);
+        }
+
+        /* Virtual Gamepad */
+        .gamepad-box {
+            margin-top: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(20, 14, 40, 0.85);
+            padding: 8px 6px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .dpad-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 44px);
+            grid-template-rows: repeat(3, 44px);
+            gap: 4px;
+        }
+        .dpad-key {
+            background: #231940;
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 3px 0 rgba(0,0,0,0.5);
+            cursor: pointer;
+        }
+        .dpad-key:active, .dpad-key.pressed {
+            transform: translateY(2px);
+            background: var(--accent-gold);
+            color: #000;
+            box-shadow: 0 1px 0 rgba(0,0,0,0.5);
+        }
+
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 54px);
+            gap: 8px;
+        }
+        .btn-act {
+            height: 48px;
+            border-radius: 12px;
+            border: none;
+            font-size: 12px;
+            font-weight: 800;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.4);
+            color: #fff;
+        }
+        .btn-act:active {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 rgba(0,0,0,0.4);
+        }
+        .btn-atk { background: linear-gradient(135deg, #d90429, #ef233c); }
+        .btn-jump { background: linear-gradient(135deg, #3a86ff, #00b4d8); }
+        .btn-guard { background: linear-gradient(135deg, #7209b7, #560bad); }
+        .btn-skill { background: linear-gradient(135deg, #06d6a0, #118ab2); }
+
+        /* On-Screen QWERTY Keyboard */
+        .qwerty-box {
+            margin-top: 8px;
+            background: #140d28;
+            padding: 8px 4px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 183, 3, 0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .qwerty-row {
+            display: flex;
+            justify-content: center;
+            gap: 4px;
+        }
+        .vk-key {
+            flex: 1;
+            max-width: 34px;
+            height: 40px;
+            background: #241a3e;
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 0 rgba(0,0,0,0.5);
+            cursor: pointer;
+        }
+        .vk-key:active, .vk-key.active {
+            background: var(--accent-gold);
+            color: #000;
+            transform: translateY(2px);
+            box-shadow: none;
+        }
+        .vk-back {
+            flex: 1.5;
+            max-width: 52px;
+            background: #4a192c;
+            color: #ffb4c6;
+            font-size: 13px;
+        }
+
+        /* Codex Cards */
+        .codex-card {
+            background: var(--bg-panel);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 10px;
+        }
+        .codex-card h3 {
+            color: var(--accent-gold);
+            font-size: 15px;
+            font-family: 'Cinzel', serif;
+            margin-bottom: 6px;
+        }
+        .codex-card p {
+            color: var(--text-dim);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+        .badge-bar {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+        .badge {
+            background: rgba(255, 183, 3, 0.12);
+            color: var(--accent-gold);
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 183, 3, 0.3);
+        }
+
+        /* Fullscreen Overlay Mode */
+        body.is-fullscreen .app-bar,
+        body.is-fullscreen .mode-nav {
+            display: none !important;
+        }
+        body.is-fullscreen .screen-container {
+            padding: 0 !important;
+            max-width: 100vw !important;
+            height: 100vh !important;
+        }
+        body.is-fullscreen .canvas-stage {
+            border-radius: 0 !important;
+            border: none !important;
+            flex: 1 !important;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- App Header -->
+    <header class="app-bar">
+        <div class="brand">
+            <img src="The_Awaiting_Stars_Logo.png" alt="Logo" onerror="this.style.display='none'">
+            <span class="brand-title">THE AWAITING STARS</span>
+        </div>
+        <div class="app-bar-actions">
+            <button class="btn-mini" onclick="toggleFullscreen()">⛶ Fullscreen</button>
+        </div>
+    </header>
+
+    <!-- Mode Selector Navigation -->
+    <nav class="mode-nav">
+        <button class="mode-tab active" onclick="setMode('typist')">⌨️ Word Typist</button>
+        <button class="mode-tab" onclick="setMode('action')">⚔️ Dual-World</button>
+        <button class="mode-tab" onclick="setMode('codex')">🏛️ Science Codex</button>
+    </nav>
+
+    <!-- SCREEN 1: WORD TYPIST MOBILE ARCADE -->
+    <div id="screen-typist" class="screen-container active">
+        <div class="canvas-stage">
+            <canvas id="typist-canvas" width="600" height="700"></canvas>
+        </div>
+
+        <!-- On-Screen QWERTY Touch Keyboard -->
+        <div class="qwerty-box">
+            <!-- Row 1: QWERTYUIOP -->
+            <div class="qwerty-row">
+                <button class="vk-key" data-key="Q">Q</button>
+                <button class="vk-key" data-key="W">W</button>
+                <button class="vk-key" data-key="E">E</button>
+                <button class="vk-key" data-key="R">R</button>
+                <button class="vk-key" data-key="T">T</button>
+                <button class="vk-key" data-key="Y">Y</button>
+                <button class="vk-key" data-key="U">U</button>
+                <button class="vk-key" data-key="I">I</button>
+                <button class="vk-key" data-key="O">O</button>
+                <button class="vk-key" data-key="P">P</button>
+            </div>
+            <!-- Row 2: ASDFGHJKL -->
+            <div class="qwerty-row">
+                <button class="vk-key" data-key="A">A</button>
+                <button class="vk-key" data-key="S">S</button>
+                <button class="vk-key" data-key="D">D</button>
+                <button class="vk-key" data-key="F">F</button>
+                <button class="vk-key" data-key="G">G</button>
+                <button class="vk-key" data-key="H">H</button>
+                <button class="vk-key" data-key="J">J</button>
+                <button class="vk-key" data-key="K">K</button>
+                <button class="vk-key" data-key="L">L</button>
+            </div>
+            <!-- Row 3: ZXCVBNM + BACKSPACE -->
+            <div class="qwerty-row">
+                <button class="vk-key" data-key="Z">Z</button>
+                <button class="vk-key" data-key="X">X</button>
+                <button class="vk-key" data-key="C">C</button>
+                <button class="vk-key" data-key="V">V</button>
+                <button class="vk-key" data-key="B">B</button>
+                <button class="vk-key" data-key="N">N</button>
+                <button class="vk-key" data-key="M">M</button>
+                <button class="vk-key vk-back" data-key="BACK">⌫</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCREEN 2: DUAL-WORLD ACTION (Platformer & Cartography) -->
+    <div id="screen-action" class="screen-container">
+        <!-- Sub-mode bar -->
+        <div class="sub-mode-bar">
+            <button class="sub-btn active" id="btn-mode-plat" onclick="setSubMode('2D_PLATFORMER')">⚔️ 2D Elevation</button>
+            <button class="sub-btn" id="btn-mode-rpg" onclick="setSubMode('TOPDOWN_RPG')">🗺️ 3D Cartography</button>
+            <button class="sub-btn" id="btn-mode-sand" onclick="setSubMode('SANDBOX')">🧱 Sandbox</button>
+        </div>
+
+        <div class="canvas-stage">
+            <canvas id="game-canvas" width="800" height="480"></canvas>
+        </div>
+
+        <!-- Virtual Touch Gamepad -->
+        <div class="gamepad-box">
+            <div class="dpad-grid">
+                <div></div>
+                <button class="dpad-key" id="dpad-up">▲</button>
+                <div></div>
+                <button class="dpad-key" id="dpad-left">◀</button>
+                <div style="background: rgba(255,255,255,0.04); border-radius: 6px;"></div>
+                <button class="dpad-key" id="dpad-right">▶</button>
+                <div></div>
+                <button class="dpad-key" id="dpad-down">▼</button>
+                <div></div>
+            </div>
+
+            <div class="action-grid">
+                <button class="btn-act btn-jump" id="touch-btn-jump">JUMP</button>
+                <button class="btn-act btn-atk" id="touch-btn-attack">⚔️ ATK</button>
+                <button class="btn-act btn-guard" id="touch-btn-shield">🛡️ DEF</button>
+                <button class="btn-act btn-skill" id="touch-btn-skill">❄️ SKILL</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCREEN 3: SCIENCE CODEX -->
+    <div id="screen-codex" class="screen-container">
+        <div class="codex-card">
+            <h3>🏛️ Science & Survival Codex</h3>
+            <p>Practical physical and chemical principles discovered while exploring, mining, smelting, and harvesting in the game world.</p>
+        </div>
+        <div class="codex-card">
+            <h3>1. Mineral Durability & Rock Mass</h3>
+            <p>Rocks fracture according to physical mass: Small Rocks break in 2 strikes (1–3 stones), Medium Rocks in 4 strikes (3–6 stones), and Big Monoliths in 6 strikes (7–10 stones).</p>
+            <div class="badge-bar">
+                <span class="badge">Small: 2 hits</span>
+                <span class="badge">Medium: 4 hits</span>
+                <span class="badge">Big: 6 hits</span>
+            </div>
+        </div>
+        <div class="codex-card">
+            <h3>2. Metallurgy & Thermodynamic Smelting</h3>
+            <p>Refining raw iron ore is an endothermic chemical reaction. Providing coal fuel and a gold fee to the village blacksmith runs a 6-second thermal state machine with chimney smoke and anvil clangs before producing refined iron ingots.</p>
+            <div class="badge-bar">
+                <span class="badge">6.0s Endothermic</span>
+                <span class="badge">Coal Carbon Fuel</span>
+                <span class="badge">Refined Ingot</span>
+            </div>
+        </div>
+        <div class="codex-card">
+            <h3>3. Botany & Cellulose Plant Structure</h3>
+            <p>Forest trees are mortal biological structures with 4 HP. Striking with an axe triggers physical vibration, depletes visual health pips, and fells timber, unlocking cellulose biopolymers.</p>
+            <div class="badge-bar">
+                <span class="badge">4 Tree HP</span>
+                <span class="badge">Cellulose Biopolymer</span>
+                <span class="badge">Timber Felling</span>
+            </div>
+        </div>
+        <div class="codex-card">
+            <h3>4. 3x3 Field Workbench Tool Multipliers</h3>
+            <p>Crafting specialized survival tools on the 3x3 grid grants physical multipliers: Pickaxes double rock damage, Axes double tree chopping speed, and Swords double combat efficiency.</p>
+            <div class="badge-bar">
+                <span class="badge">3x3 Grid</span>
+                <span class="badge">2x Mining</span>
+                <span class="badge">2x Chopping</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Scripts -->
+    <script src="game.js"></script>
+    <script src="mobile_typist.js"></script>
+    <script>
+        function setMode(modeId) {
+            document.querySelectorAll('.mode-tab').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.screen-container').forEach(s => s.classList.remove('active'));
+
+            const targetScreen = document.getElementById('screen-' + modeId);
+            if (targetScreen) targetScreen.classList.add('active');
+
+            const activeBtn = Array.from(document.querySelectorAll('.mode-tab')).find(b => b.getAttribute('onclick').includes(modeId));
+            if (activeBtn) activeBtn.classList.add('active');
+
+            if (modeId === 'typist' && !window.typistApp) {
+                window.typistApp = new WordTypistMobile('typist-canvas');
+            }
+        }
+
+        function setSubMode(subMode) {
+            document.querySelectorAll('.sub-btn').forEach(b => b.classList.remove('active'));
+            if (subMode === '2D_PLATFORMER') document.getElementById('btn-mode-plat').classList.add('active');
+            else if (subMode === 'TOPDOWN_RPG') document.getElementById('btn-mode-rpg').classList.add('active');
+            else if (subMode === 'SANDBOX') document.getElementById('btn-mode-sand').classList.add('active');
+
+            // Dispatch to game engine
+            if (window.switchGameDimension) {
+                window.switchGameDimension(subMode);
+            }
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(() => {});
+                document.body.classList.add('is-fullscreen');
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+                document.body.classList.remove('is-fullscreen');
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            window.typistApp = new WordTypistMobile('typist-canvas');
+        });
+    </script>
+</body>
+</html>
